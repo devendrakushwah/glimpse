@@ -316,7 +316,17 @@ def invoke_worker(payload, model, timeout):
     if not answer:
         return None, "worker returned an empty answer."
 
-    return {"answer": answer, "cost": data.get("total_cost_usd", 0.0)}, None
+    # modelUsage's keys are the model(s) that actually ran, straight from
+    # Claude Code -- authoritative, unlike echoing back the --model flag we
+    # passed (which says nothing if a fallback silently substituted a
+    # different model).
+    resolved_models = list(data.get("modelUsage", {}).keys())
+
+    return {
+        "answer": answer,
+        "cost": data.get("total_cost_usd", 0.0),
+        "model": ", ".join(resolved_models) if resolved_models else "unknown",
+    }, None
 
 
 def read_main(argv):
@@ -355,7 +365,7 @@ def read_main(argv):
     print(result["answer"])
     print(
         f"[glimpse: ~{len(message) // 4} input tokens | {len(args.paths)} files | "
-        f"worker={args.model} | cost=${result['cost']:.4f}]",
+        f"worker ran on {result['model']} | cost=${result['cost']:.4f}]",
         file=sys.stderr,
     )
     return 0

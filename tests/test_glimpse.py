@@ -220,12 +220,26 @@ class WorkerInvocationTests(unittest.TestCase):
         return proc
 
     def test_successful_response_parsed(self):
-        proc = self.fake_popen(stdout=json.dumps({"result": "- finding one", "total_cost_usd": 0.0025}))
+        proc = self.fake_popen(stdout=json.dumps({
+            "result": "- finding one",
+            "total_cost_usd": 0.0025,
+            "modelUsage": {"claude-haiku-4-5-20251001": {}},
+        }))
         with patch("subprocess.Popen", return_value=proc):
             result, err = glimpse.invoke_worker("payload", "haiku", 30)
         self.assertIsNone(err)
         self.assertEqual(result["answer"], "- finding one")
         self.assertEqual(result["cost"], 0.0025)
+        # Reported model is what the response says actually ran, not just
+        # whatever we passed via --model -- a silent fallback would show here.
+        self.assertEqual(result["model"], "claude-haiku-4-5-20251001")
+
+    def test_resolved_model_falls_back_to_unknown_without_modelusage(self):
+        proc = self.fake_popen(stdout=json.dumps({"result": "- finding", "total_cost_usd": 0.001}))
+        with patch("subprocess.Popen", return_value=proc):
+            result, err = glimpse.invoke_worker("payload", "haiku", 30)
+        self.assertIsNone(err)
+        self.assertEqual(result["model"], "unknown")
 
     def test_is_error_response_rejected(self):
         proc = self.fake_popen(stdout=json.dumps({"result": "auth failed", "is_error": True}))
@@ -302,7 +316,11 @@ class WorkerInvocationTests(unittest.TestCase):
 
     def test_read_main_success_prints_answer_only_on_stdout(self):
         import io
-        proc = self.fake_popen(stdout=json.dumps({"result": "- the answer", "total_cost_usd": 0.001}))
+        proc = self.fake_popen(stdout=json.dumps({
+            "result": "- the answer",
+            "total_cost_usd": 0.001,
+            "modelUsage": {"claude-haiku-4-5-20251001": {}},
+        }))
         f = make_file(self.tmp.name, "small.txt", content="hello\n")
         out, err = io.StringIO(), io.StringIO()
         with patch("subprocess.Popen", return_value=proc), \
@@ -310,7 +328,8 @@ class WorkerInvocationTests(unittest.TestCase):
             rc = glimpse.read_main(["--question", "what is this?", "--paths", str(f)])
         self.assertEqual(rc, 0)
         self.assertEqual(out.getvalue().strip(), "- the answer")
-        self.assertIn("worker=haiku", err.getvalue())
+        # Proves the diagnostic line, not just invoke_worker in isolation.
+        self.assertIn("worker ran on claude-haiku-4-5-20251001", err.getvalue())
 
 
 @unittest.skipUnless(glimpse._CAN_USE_PROCESS_GROUP, "process-group kill is POSIX-only")
