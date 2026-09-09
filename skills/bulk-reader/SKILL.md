@@ -1,11 +1,21 @@
 ---
 name: bulk-reader
-description: "Delegate reading or understanding large files to a cheap ephemeral worker model. Use this whenever a Read is blocked for size, or a question spans 3+ files. This is the default path for understanding a large file, not a bounded re-read."
+description: "Delegate reading or understanding large files to a cheap ephemeral worker model. Use this whenever a Read is blocked for size, or a question spans 3+ files. This is the default path for understanding a large file, not a bounded re-read or a forked subagent."
 ---
 
 ```bash
 python3 "${CLAUDE_PLUGIN_ROOT}/scripts/glimpse.py" read --question "<question>" --paths <file1> [<file2> ...]
 ```
+
+Call this directly from whatever context you're already in — **do not fork or spawn a
+subagent just to call it.** This skill already keeps the raw file out of context on its
+own, whether you call it from the main conversation or a subagent, so forking first adds
+nothing: a fork inherits your entire conversation history and pays for it as cache-read
+tokens on every one of its own turns, then reasons at the same model and price as the
+conversation it forked from — all to do a job that needed none of that history. If you
+already know a file is large before attempting to read it (e.g. from `wc -l` or a
+directory listing), call this skill directly instead of forking first and discovering the
+block from inside the fork.
 
 Ask a specific question — "which methods write to the database?", not "summarize this
 file". The worker reads the files; you only see its answer, so pass every file the

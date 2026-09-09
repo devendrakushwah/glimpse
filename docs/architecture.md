@@ -195,6 +195,29 @@ response should never look like a successful summary.
   per session and deny once that total crosses the same threshold a single
   call would have. Not yet implemented.
 
+- **Forking before calling the skill adds overhead the fork gets no benefit
+  from.** The hook fires correctly inside forked subagents (verified: a
+  fork's own `Read` on an oversized file is denied exactly like the main
+  conversation's), and the raw file content only ever reaches the cheap
+  worker either way. But a `fork` (as opposed to a plain subagent) inherits
+  the entire parent conversation as its starting context. Observed directly
+  in a real session: three forks spawned purely to call this skill on three
+  files each carried 850K-915K cache-read tokens of prior conversation
+  history, plus 2,600-4,800 tokens of the fork's *own* full-price reasoning
+  at the parent's model (Sonnet, not the haiku worker) — for a task that
+  needed none of that history. Nothing about this plugin's design asked for
+  a fork; the main model chose to spawn one before ever attempting a `Read`
+  on the file.
+
+  Same category of fix as the pagination issue above: prompting only.
+  `redirect_message()` and `skills/bulk-reader/SKILL.md` both now tell
+  Claude to call the skill directly rather than forking first. There is no
+  hook-level enforcement for this and it's a harder problem than the read
+  hooks: a `PreToolUse` hook matching the `Agent` tool would have to guess
+  the *purpose* of a fork from its task description before it runs, which
+  is unreliable and risks blocking forks that have nothing to do with file
+  reads. Not attempted.
+
 ## Non-goals
 
 - **Not a security boundary.** The bash-command parser is `shlex` plus a

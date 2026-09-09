@@ -106,7 +106,11 @@ def redirect_message(min_lines, max_bytes, lines, size, path):
         f"as a full read would, just via more tool calls, and defeats the point of this block. "
         f"A bounded re-read (offset/limit) is only for re-verifying a specific section you already "
         f"know the line numbers of, immediately before editing it \u2014 not for exploring or "
-        f"understanding a file you haven't read yet."
+        f"understanding a file you haven't read yet.\n\n"
+        f"If you spawned a subagent or fork specifically to get around this limit, that wasn't "
+        f"necessary \u2014 call the command above directly from wherever you already are. Forking "
+        f"adds the cost of inheriting your whole conversation history on top, for no benefit: this "
+        f"file was never going to enter your context either way, fork or not."
     )
 
 
