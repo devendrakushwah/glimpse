@@ -36,7 +36,8 @@ check_read() / check_bash() in glimpse.py
         |                   `glimpse.py read` invocation to use
         v
 Claude either:
-  - finds a cheaper native path (grep, a bounded re-read), or
+  - finds a cheaper native path (grep, then a bounded re-read of the matching
+    section only), or
   - invokes the bulk-reader skill
         |
         v
@@ -168,6 +169,31 @@ treats a non-zero exit code, unparseable stdout, `is_error: true`, and an
 empty `result` as four distinct failure modes, each surfaced with a specific
 message rather than a generic "something went wrong" — a stale worker
 response should never look like a successful summary.
+
+## Known limitations (tracked, not yet fixed)
+
+- **A blocked file can still be fully read via repeated bounded calls.**
+  `check_read`'s bounded-`limit` allowance is evaluated per call, with no
+  memory of earlier calls. Nothing stops `Read(offset=1, limit=350)` followed
+  by `Read(offset=350, limit=300)` and so on until the whole file has been
+  paginated into context piece by piece — which delivers exactly the content
+  the block exists to keep out, just spread across more tool calls. Observed
+  in practice against an 862-line file: two bounded reads reconstructed 649
+  of its 862 lines before stopping.
+
+  Current mitigation is prompting only: `redirect_message()` and
+  `skills/bulk-reader/SKILL.md` both now explicitly name this pattern and
+  tell Claude not to do it, narrowing the legitimate use of a bounded
+  re-read to "verifying a section you already know the line numbers of,
+  right before editing it." This measurably changes behavior but doesn't
+  make the pagination path infeasible — an agent that decides pagination
+  serves its task better (e.g. because it wants exact code, not a worker's
+  summary, for something like debugging) can still do it.
+
+  The real fix needs session-scoped state: every hook call carries a stable
+  `session_id`, so `check_read` can track cumulative lines allowed per file
+  per session and deny once that total crosses the same threshold a single
+  call would have. Not yet implemented.
 
 ## Non-goals
 

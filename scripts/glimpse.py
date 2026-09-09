@@ -97,10 +97,16 @@ def redirect_message(min_lines, max_bytes, lines, size, path):
     plugin_root = os.environ.get("CLAUDE_PLUGIN_ROOT", "<plugin-root>")
     script = f"{plugin_root}/scripts/glimpse.py"
     return (
-        f"File is {lines} lines / {size} bytes (threshold: {min_lines} lines or {max_bytes} bytes). "
-        f"Use the bulk-reader skill instead: python3 \"{script}\" read --question \"<question>\" "
-        f"--paths {path}. If you need exact content for editing, re-read with a bounded limit "
-        f"(<= {min_lines})."
+        f"File is {lines} lines / {size} bytes (threshold: {min_lines} lines or {max_bytes} bytes) "
+        f"\u2014 too large to read directly.\n\n"
+        f"Use the bulk-reader skill to understand it: python3 \"{script}\" read "
+        f"--question \"<specific question>\" --paths {path}\n\n"
+        f"Do not read this file in multiple bounded chunks instead (limit=350, then limit=350 "
+        f"again for the next section, and so on) \u2014 that puts the same content in your context "
+        f"as a full read would, just via more tool calls, and defeats the point of this block. "
+        f"A bounded re-read (offset/limit) is only for re-verifying a specific section you already "
+        f"know the line numbers of, immediately before editing it \u2014 not for exploring or "
+        f"understanding a file you haven't read yet."
     )
 
 
