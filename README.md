@@ -43,12 +43,21 @@ the "read the whole file to understand it" case.
 Requirements: Python 3, `claude` CLI on `PATH` and already authenticated.
 Nothing else to install.
 
+There's no `claude plugin install` for a plain git repo like this one (that
+command expects a marketplace entry). Two ways to actually load it:
+
+**Persistent, every session** — symlink it into `~/.claude/skills/`. Any
+folder there containing a `.claude-plugin/plugin.json` auto-loads as
+`<name>@skills-dir`, no marketplace and no install step:
+
 ```bash
 git clone https://github.com/devendrakushwah/glimpse.git
-claude plugin add-dir /path/to/glimpse
+ln -s "$(pwd)/glimpse" ~/.claude/skills/glimpse
 ```
 
-Or load it for a single session without installing:
+Confirm it loaded: `claude plugin list` should show `glimpse@skills-dir`.
+
+**One session only**, without installing anything:
 
 ```bash
 claude --plugin-dir /path/to/glimpse
