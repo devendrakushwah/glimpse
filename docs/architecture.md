@@ -218,6 +218,25 @@ response should never look like a successful summary.
   is unreliable and risks blocking forks that have nothing to do with file
   reads. Not attempted.
 
+- **Calling the skill directly (no fork) loses the concurrency forking got
+  for free.** Observed in a separate real session: three `glimpse.py read`
+  calls for three different files, issued within 6 seconds of each other,
+  landed 30.7s / 77.1s / 105.4s after the first call — consecutive gaps of
+  46.4s and 28.3s, summing close to what three sequential calls would take
+  rather than clustering near the slowest one. `Bash` is synchronous by
+  default; without `run_in_background: true` on each call, Claude Code runs
+  them one after another even if Claude requested all three up front. A
+  fork gets concurrency because forks run in the background by default —
+  but pays the inherited-conversation cost documented above for it.
+
+  `skills/bulk-reader/SKILL.md` now tells Claude to background each call
+  (`run_in_background: true`) when it needs several files answered
+  independently, instead of either forking or calling them in sequence:
+  each `glimpse.py read` invocation is a fully independent `claude -p`
+  subprocess with no shared state, so backgrounding them is safe and gets
+  the same wall-clock benefit as forking without a fork's overhead. Not
+  yet re-verified against a live session with this guidance in place.
+
 ## Non-goals
 
 - **Not a security boundary.** The bash-command parser is `shlex` plus a

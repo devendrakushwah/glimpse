@@ -34,5 +34,14 @@ Each call is independent and stateless. For a follow-up, call again with the sam
 `--paths` — the files never entered your context, so re-sending them costs you nothing
 here.
 
+**Need this for several files with different questions?** Don't call it once per file in
+sequence, and don't fork to parallelize it either — set `run_in_background: true` on each
+`Bash` call instead. Each call is an independent `claude -p` subprocess with no shared
+state, so they run correctly in parallel with no extra setup. This gets you the same wall
+time as forking would, without a fork's overhead: no inherited conversation, no extra
+model cost, just N ordinary background commands you check on once they're done — a serial
+run of three ~30-45s calls takes 90-135s total, backgrounded they all land around the
+time of the slowest one.
+
 The worker cannot browse, edit, or run commands, and never sees your conversation. It
 only sees the files you pass and the question you ask.
