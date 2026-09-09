@@ -222,6 +222,18 @@ confirmed each fix actually changed behavior.
   is unreliable and risks blocking forks that have nothing to do with file
   reads. Not attempted.
 
+  Also worth naming precisely: a fork correctly *reuses* the parent's cache
+  for that inherited history (confirmed: cache-read outweighed cache-create
+  28x across the three forks) — the mechanism isn't broken, the task just
+  never needed what it correctly received. `skills/bulk-reader/SKILL.md`
+  now adds a fallback for whenever a subagent still seems warranted (e.g.
+  structuring several file questions rather than raw backgrounded `Bash`
+  calls): use a plain subagent, not a fork. A plain subagent starts with a
+  fresh, empty context by default — nothing inherited, nothing to pay
+  cache-read on — which is what a self-contained "read one file, report its
+  structure" task actually needs. A fork's unconditional inheritance is the
+  right tool only when a task genuinely needs the shared context.
+
 - **Calling the skill directly (no fork) loses the concurrency forking got
   for free.** Observed in a separate real session: three `glimpse.py read`
   calls for three different files, issued within 6 seconds of each other,

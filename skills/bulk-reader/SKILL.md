@@ -1,6 +1,6 @@
 ---
 name: bulk-reader
-description: "Delegate reading or understanding large files to a cheap ephemeral worker model. Use this whenever a Read is blocked for size, or a question spans 3+ files. This is the default path for understanding a large file, not a bounded re-read or a forked subagent."
+description: "Delegate reading or understanding large files to a cheap ephemeral worker model. Use this whenever a Read is blocked for size, or a question spans 3+ files. This is the default path for understanding a large file, not a bounded re-read. Call directly, not from a forked subagent -- a fork inherits the whole conversation for no benefit here."
 ---
 
 ```bash
@@ -16,6 +16,13 @@ conversation it forked from — all to do a job that needed none of that history
 already know a file is large before attempting to read it (e.g. from `wc -l` or a
 directory listing), call this skill directly instead of forking first and discovering the
 block from inside the fork.
+
+If you still end up wanting a subagent for this — e.g. to structure several file
+questions rather than raw backgrounded `Bash` calls — use a **plain subagent**
+(`general-purpose` or similar), not a fork. A plain subagent starts with a fresh, empty
+context: no inherited conversation, nothing to pay cache-read on. A fork inherits
+everything on purpose, which is the right call when a task genuinely needs your shared
+context — reading one file and reporting its structure doesn't.
 
 Ask a specific question — "which methods write to the database?", not "summarize this
 file". The worker reads the files; you only see its answer, so pass every file the
