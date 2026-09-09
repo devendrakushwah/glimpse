@@ -1,0 +1,9 @@
+{
+  "name": "glimpse",
+  "displayName": "Glimpse",
+  "version": "0.1.0",
+  "description": "Blocks broad file reads and delegates them to a cheap, ephemeral Claude worker (claude -p --model haiku). Only the worker's answer enters your context -- a glimpse, not a full read. Dependency-free reimagining of Spotify's shunt plugin, minus Portal.",
+  "author": { "name": "you" },
+  "license": "MIT",
+  "keywords": ["token-optimization", "model-routing", "delegation"]
+}
