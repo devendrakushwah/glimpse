@@ -1,8 +1,12 @@
 # glimpse
 
-A Claude Code plugin that stops Claude from reading large files directly and
-routes the read to a cheap, disposable worker instead. Claude gets an answer
-to a specific question; it never sees the file contents.
+💸 Stop burning expensive model tokens just to read big files — let a cheap
+model do it. Every time Claude Code reads a large file straight into context,
+you're paying frontier-model rates for what's usually just a lookup. Glimpse
+cuts that bill by keeping large files out of Claude's context entirely: a
+PreToolUse hook denies the read and routes it to a disposable, cheap worker
+instead. Claude gets an answer to a specific question back; it never sees
+the file contents.
 
 The idea comes from Spotify's [`shunt`](https://github.com/spotify/portal-ai-plugins/tree/main/plugins/shunt)
 plugin, which does the same thing through Spotify's internal Portal/AiKA
