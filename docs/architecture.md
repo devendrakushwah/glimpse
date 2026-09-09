@@ -172,6 +172,10 @@ response should never look like a successful summary.
 
 ## Known limitations (tracked, not yet fixed)
 
+See `field-notes.md` for the transcript evidence behind each of the three
+items below — exact timestamps, token counts, and which later sessions
+confirmed each fix actually changed behavior.
+
 - **A blocked file can still be fully read via repeated bounded calls.**
   `check_read`'s bounded-`limit` allowance is evaluated per call, with no
   memory of earlier calls. Nothing stops `Read(offset=1, limit=350)` followed

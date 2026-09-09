@@ -122,6 +122,12 @@ the process-lifecycle guarantees (and the gap in the naive approach that
 made those guarantees necessary), and what this deliberately doesn't try to
 do.
 
+`docs/field-notes.md` is the evidence trail behind three of those design
+decisions — chunked pagination around the size limit, forking with no
+cost benefit, and serial execution where backgrounding was needed instead
+— each one found in a real session, not synthetic testing, with the
+transcript timestamps to show it.
+
 ## Scope
 
 This handles read delegation only. It does not generate code, edit files, or
