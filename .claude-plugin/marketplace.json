@@ -1,0 +1,23 @@
+{
+  "name": "glimpse-plugins",
+  "owner": {
+    "name": "Devendra Kushwah",
+    "email": "idevendra08@gmail.com",
+    "url": "https://github.com/devendrakushwah"
+  },
+  "description": "Marketplace for glimpse, a dependency-free Claude Code plugin that delegates large file reads to a cheap ephemeral worker instead of the main model.",
+  "plugins": [
+    {
+      "name": "glimpse",
+      "source": "./",
+      "description": "Blocks broad file reads and delegates them to a cheap, ephemeral Claude worker (claude -p --model haiku). Only the worker's answer enters your context.",
+      "version": "0.1.0",
+      "author": {
+        "name": "Devendra Kushwah"
+      },
+      "homepage": "https://github.com/devendrakushwah/glimpse",
+      "license": "MIT",
+      "keywords": ["token-optimization", "model-routing", "delegation"]
+    }
+  ]
+}
